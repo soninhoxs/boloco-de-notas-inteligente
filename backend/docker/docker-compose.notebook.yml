@@ -1,0 +1,184 @@
+# Mega Brain no notebook — um endereço (porta 3080) com site + API
+# Uso: scripts/start-megabrain-notebook.ps1
+
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: backend/docker/Dockerfile.notebook-web
+      args:
+        VITE_API_URL: /api/v1
+    ports:
+      - "127.0.0.1:3080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - megabrain-network
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    environment:
+      - PORT=8080
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgres://megabrain:${POSTGRES_PASSWORD}@pgbouncer:5432/megabrain?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-megabrain_minio}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - MINIO_BUCKET=attachments
+      - MINIO_USE_SSL=false
+      - JWT_SECRET=${JWT_SECRET:?defina JWT_SECRET no ambiente}
+      - JWT_ACCESS_EXPIRES=15m
+      - JWT_REFRESH_EXPIRES=168h
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - AI_DEFAULT_PROVIDER=groq
+      - FRONTEND_URL=${NOTEBOOK_URL:-http://localhost:3080}
+      - BACKEND_URL=${NOTEBOOK_URL:-http://localhost:3080}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3080}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - CONSENT_VERSION=${CONSENT_VERSION:-2026-06-18}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - megabrain-network
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    environment:
+      - DATABASE_URL=postgres://megabrain:${POSTGRES_PASSWORD}@pgbouncer:5432/megabrain?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - WORKER_COUNT=1
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - AI_DEFAULT_PROVIDER=groq
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - megabrain-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: megabrain
+      POSTGRES_USER: megabrain
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
+    volumes:
+      - megabrain_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U megabrain -d megabrain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - megabrain-network
+    restart: unless-stopped
+
+  migrate:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: megabrain
+      POSTGRES_DB: megabrain
+      DB_HOST: postgres
+    volumes:
+      - ../migrations:/migrations:ro
+      - ../scripts/migrate.sh:/migrate.sh:ro
+    entrypoint: ["/bin/sh", "/migrate.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - megabrain-network
+    restart: "no"
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    environment:
+      DATABASE_URL: postgres://megabrain:${POSTGRES_PASSWORD}@postgres:5432/megabrain
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 200
+      DEFAULT_POOL_SIZE: 20
+      AUTH_TYPE: plain
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U megabrain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - megabrain-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - megabrain_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - megabrain-network
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-megabrain_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?defina MINIO_ROOT_PASSWORD}
+    volumes:
+      - megabrain_minio:/data
+    networks:
+      - megabrain-network
+    restart: unless-stopped
+
+networks:
+  megabrain-network:
+    driver: bridge
+
+volumes:
+  megabrain_postgres:
+  megabrain_redis:
+  megabrain_minio:

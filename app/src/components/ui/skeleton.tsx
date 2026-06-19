@@ -1,10 +1,24 @@
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
+type SkeletonProps = React.ComponentProps<'div'> & {
+  animationType?: 'shimmer' | 'pulse' | 'none'
+}
+
+function Skeleton({
+  className,
+  animationType = 'shimmer',
+  ...props
+}: SkeletonProps) {
   return (
     <div
       data-slot="skeleton"
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+      data-animation={animationType}
+      className={cn(
+        'relative overflow-hidden rounded-md bg-muted',
+        animationType === 'shimmer' && 'skeleton--shimmer',
+        animationType === 'pulse' && 'animate-pulse',
+        className
+      )}
       {...props}
     />
   )

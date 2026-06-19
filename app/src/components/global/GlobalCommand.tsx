@@ -12,13 +12,13 @@ import {
 } from '@/components/ui/command'
 import {
   Calendar,
-  CreditCard,
   Settings,
   Home,
   MoonStar,
   NotebookPen,
   PenLine,
 } from 'lucide-react'
+import { useI18n } from '@/contexts/I18nContext'
 
 interface GlobalCommandProps {
   onToggleTheme: () => void
@@ -27,11 +27,12 @@ interface GlobalCommandProps {
 }
 
 export function GlobalCommand({ onToggleTheme, onOpenChange, onNavigate }: GlobalCommandProps) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    onOpenChange?.(open);
-  }, [open, onOpenChange]);
+    onOpenChange?.(open)
+  }, [open, onOpenChange])
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -52,55 +53,50 @@ export function GlobalCommand({ onToggleTheme, onOpenChange, onNavigate }: Globa
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <Command>
-        <CommandInput placeholder="Digite um comando ou busque..." />
+        <CommandInput placeholder={t('command.placeholder')} />
         <CommandList>
-          <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+          <CommandEmpty>{t('command.empty')}</CommandEmpty>
 
-          <CommandGroup heading="Navegação">
+          <CommandGroup heading={t('command.navigation')}>
             <CommandItem onSelect={() => runAction(() => onNavigate?.('home'))}>
               <Home />
-              <span>Página Inicial</span>
+              <span>{t('command.homePage')}</span>
               <CommandShortcut>⌘H</CommandShortcut>
-            </CommandItem>
-            <CommandItem onSelect={() => runAction(() => onNavigate?.('calendar'))}>
-              <Calendar />
-              <span>Calendário</span>
-              <CommandShortcut>⌘C</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runAction(() => onNavigate?.('notes'))}>
               <NotebookPen />
-              <span>Anotações</span>
+              <span>{t('nav.notes')}</span>
               <CommandShortcut>⌘P</CommandShortcut>
+            </CommandItem>
+            <CommandItem onSelect={() => runAction(() => onNavigate?.('calendar'))}>
+              <Calendar />
+              <span>{t('nav.calendar')}</span>
+              <CommandShortcut>⌘C</CommandShortcut>
             </CommandItem>
           </CommandGroup>
 
           <CommandSeparator />
 
-          <CommandGroup heading="Ações Rápidas">
+          <CommandGroup heading={t('command.quickActions')}>
             <CommandItem onSelect={() => runAction(() => onNavigate?.('home'))}>
               <PenLine />
-              <span>Nova Anotação</span>
+              <span>{t('command.newNote')}</span>
               <CommandShortcut>⌘N</CommandShortcut>
             </CommandItem>
           </CommandGroup>
 
           <CommandSeparator />
 
-          <CommandGroup heading="Configurações">
+          <CommandGroup heading={t('command.settingsGroup')}>
             <CommandItem onSelect={() => runAction(onToggleTheme)}>
               <MoonStar />
-              <span>Alternar Tema</span>
+              <span>{t('command.toggleTheme')}</span>
               <CommandShortcut>⌘J</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runAction(() => onNavigate?.('settings'))}>
               <Settings />
-              <span>Configurações</span>
+              <span>{t('nav.settings')}</span>
               <CommandShortcut>⌘S</CommandShortcut>
-            </CommandItem>
-            <CommandItem onSelect={() => runAction(() => {})}>
-              <CreditCard />
-              <span>Pagamento</span>
-              <CommandShortcut>⌘B</CommandShortcut>
             </CommandItem>
           </CommandGroup>
         </CommandList>

@@ -297,6 +297,20 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     internalUpdateRef.current = false;
   }, [mapInstance, isControlled, viewport]);
 
+  // Resize when container dimensions change (e.g. dialog open animation)
+  useEffect(() => {
+    if (!mapInstance || !containerRef.current) return;
+
+    const resize = () => {
+      mapInstance.resize();
+    };
+
+    resize();
+    const observer = new ResizeObserver(() => resize());
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [mapInstance]);
+
   // Handle style change
   useEffect(() => {
     if (!mapInstance || !resolvedTheme) return;

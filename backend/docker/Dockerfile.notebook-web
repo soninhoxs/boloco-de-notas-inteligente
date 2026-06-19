@@ -1,0 +1,14 @@
+# Mega Brain — frontend + nginx (servidor temporário no notebook)
+FROM node:22-alpine AS frontend-build
+WORKDIR /frontend
+COPY app/package.json app/package-lock.json ./
+RUN npm ci
+COPY app/ ./
+ARG VITE_API_URL=/api/v1
+ENV VITE_API_URL=$VITE_API_URL
+RUN npx vite build
+
+FROM nginx:alpine
+COPY backend/docker/nginx.prod.conf /etc/nginx/nginx.conf
+COPY --from=frontend-build /frontend/dist /usr/share/nginx/html
+EXPOSE 80

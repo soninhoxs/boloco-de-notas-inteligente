@@ -1,0 +1,14 @@
+# Frontend build + Caddy (HTTPS automático com domínio real)
+FROM node:22-alpine AS frontend-build
+WORKDIR /frontend
+COPY app/package.json app/package-lock.json ./
+RUN npm ci
+COPY app/ ./
+ARG VITE_API_URL=/api/v1
+ENV VITE_API_URL=$VITE_API_URL
+RUN npm run build
+
+FROM caddy:2-alpine
+COPY backend/docker/Caddyfile /etc/caddy/Caddyfile
+COPY --from=frontend-build /frontend/dist /srv
+EXPOSE 80 443

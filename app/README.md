@@ -1,4 +1,4 @@
-# Diário de Pensamentos
+# Mega Brain
 
 App de anotações pessoais com mapas, anexos e calendário.
 
@@ -57,7 +57,7 @@ src/
 - **Tailwind CSS** para estilização
 - **shadcn/ui** para componentes base
 - **MapLibre GL** para mapas interativos
-- **localStorage** para persistência de dados
+- **localStorage** para modo convidado; **API REST** para usuários logados (notas na nuvem)
 
 ## ⚙️ Features
 
@@ -69,7 +69,7 @@ src/
 - 🌓 **Tema claro/escuro** com detecção automática
 - 📱 **Responsivo** - funciona em desktop e mobile
 
-## 🛠️ Desenvolvimento
+## Desenvolvimento
 
 ```bash
 # Instalar dependências
@@ -85,6 +85,27 @@ npm run build
 npm run preview
 ```
 
+### Notebook como servidor de testes (Windows)
+
+Sem domínio — só na sua máquina:
+
+```powershell
+.\scripts\start-megabrain-notebook.ps1
+# http://localhost:3080
+```
+
+**Expor na internet para qualquer pessoa testar** (link HTTPS temporário):
+
+```powershell
+# Instale o túnel (uma vez)
+winget install Cloudflare.cloudflared
+
+# Sobe Docker + gera link público trycloudflare.com
+.\scripts\expose-megabrain-notebook.ps1
+```
+
+Parar tudo: `.\scripts\stop-megabrain-notebook.ps1`
+
 ## 📝 Convenções
 
 - **Componentes** - PascalCase (ex: `ThoughtComposer.tsx`)
@@ -96,8 +117,12 @@ npm run preview
 
 ## 📦 Dados
 
-Todos os dados são salvos no `localStorage` do navegador:
+**Modo convidado** — dados no `localStorage` (requer cookies aceitos):
 
-- `thoughts` - Array de anotações (Note[])
-- `app_settings` - Configurações do usuário (Settings)
-- `theme` - Preferência de tema ('light' | 'dark')
+- `thoughts` — anotações locais
+- `app_settings` — preferências
+- `theme` — tema claro/escuro
+
+**Conta logada** — anotações e configurações sincronizam com o backend (`/api/v1`). Chaves de IA ficam apenas no dispositivo.
+
+Rotas do app: `/`, `/notas`, `/calendario`, `/configuracoes`.

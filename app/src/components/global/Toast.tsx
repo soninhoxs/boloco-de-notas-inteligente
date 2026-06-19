@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { CheckCircle2, X } from 'lucide-react'
 
 interface ToastProps {
@@ -16,13 +16,10 @@ export function Toast({
   onClose,
   duration = 3500,
 }: ToastProps) {
-  const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
-
   useEffect(() => {
-    const timer = setTimeout(() => onCloseRef.current(), duration)
+    const timer = setTimeout(() => onClose(), duration)
     return () => clearTimeout(timer)
-  }, [duration])
+  }, [duration, onClose])
 
   return (
     <div className="fixed bottom-4 right-4 z-[60] animate-in fade-in slide-in-from-bottom-2">

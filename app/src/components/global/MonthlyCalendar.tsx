@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
 import type { Note } from '@/types/notes'
+import { useI18n } from '@/contexts/I18nContext'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-
-const weekdayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 const levelClasses = [
   'bg-muted',
@@ -12,11 +11,6 @@ const levelClasses = [
   'bg-emerald-400 dark:bg-emerald-600',
   'bg-emerald-500 dark:bg-emerald-400',
 ]
-
-const monthFormatter = new Intl.DateTimeFormat('pt-BR', {
-  month: 'long',
-  year: 'numeric',
-})
 
 function dateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
@@ -44,6 +38,7 @@ interface MonthlyCalendarProps {
 }
 
 export function MonthlyCalendar({ notes }: MonthlyCalendarProps) {
+  const { t, formatMonthYear, weekdayLabels } = useI18n()
   const [view, setView] = useState(() => {
     const now = new Date()
     return { year: now.getFullYear(), month: now.getMonth() }
@@ -105,7 +100,7 @@ export function MonthlyCalendar({ notes }: MonthlyCalendarProps) {
     setView({ year: now.getFullYear(), month: now.getMonth() })
   }
 
-  const title = monthFormatter.format(new Date(view.year, view.month, 1))
+  const title = formatMonthYear(new Date(view.year, view.month, 1))
 
   return (
     <div className="space-y-4">
@@ -117,12 +112,12 @@ export function MonthlyCalendar({ notes }: MonthlyCalendarProps) {
             onClick={goToday}
             className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
           >
-            Hoje
+            {t('calendar.today')}
           </button>
           <button
             type="button"
             onClick={goPrev}
-            aria-label="Mês anterior"
+            aria-label={t('calendar.prevMonth')}
             className="inline-flex size-8 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted"
           >
             <ChevronLeft className="size-4" />
@@ -130,7 +125,7 @@ export function MonthlyCalendar({ notes }: MonthlyCalendarProps) {
           <button
             type="button"
             onClick={goNext}
-            aria-label="Próximo mês"
+            aria-label={t('calendar.nextMonth')}
             className="inline-flex size-8 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted"
           >
             <ChevronRight className="size-4" />
@@ -154,7 +149,7 @@ export function MonthlyCalendar({ notes }: MonthlyCalendarProps) {
           ) : (
             <div
               key={cell.key}
-              title={`${cell.count} ${cell.count === 1 ? 'anotação' : 'anotações'}`}
+              title={`${cell.count} ${cell.count === 1 ? t('calendar.noteOne') : t('calendar.noteMany')}`}
               className={cn(
                 'flex aspect-square flex-col items-center justify-center rounded-md border text-xs',
                 levelClasses[levelForCount(cell.count)],
@@ -178,14 +173,16 @@ export function MonthlyCalendar({ notes }: MonthlyCalendarProps) {
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>
-          {monthTotal} {monthTotal === 1 ? 'anotação' : 'anotações'} neste mês
+          {monthTotal === 1
+            ? t('calendar.monthTotalOne')
+            : t('calendar.monthTotalMany', { count: monthTotal })}
         </span>
         <div className="flex items-center gap-1">
-          <span>Menos</span>
+          <span>{t('calendar.less')}</span>
           {levelClasses.map((cls, i) => (
             <div key={i} className={cn('size-3 rounded-sm', cls)} />
           ))}
-          <span>Mais</span>
+          <span>{t('calendar.more')}</span>
         </div>
       </div>
     </div>

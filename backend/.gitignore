@@ -1,0 +1,6 @@
+.env
+.env.notebook.local
+.notebook-tunnel.pid
+.notebook-tunnel.url
+.notebook-tunnel.log
+bin/

@@ -1,23 +1,36 @@
 import { Moon, Sun } from 'lucide-react'
 import type { Theme } from '@/hooks/useTheme'
+import { useI18n } from '@/contexts/I18nContext'
 import { cn } from '@/lib/utils'
+
+export const chromeIconButtonClass =
+  'relative inline-flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/40 bg-white/10 text-foreground backdrop-blur-md transition-transform duration-300 hover:scale-105 active:scale-95 dark:border-white/10 dark:bg-white/5 shadow-[inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.7),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.25),0_4px_14px_rgba(0,0,0,0.12)]'
 
 interface ThemeToggleProps {
   theme: Theme
   onToggle: () => void
   className?: string
+  /** `fixed` flutua no canto; `inline` fica na barra do layout */
+  variant?: 'fixed' | 'inline'
 }
 
-export function ThemeToggle({ theme, onToggle, className }: ThemeToggleProps) {
+export function ThemeToggle({
+  theme,
+  onToggle,
+  className,
+  variant = 'fixed',
+}: ThemeToggleProps) {
+  const { t } = useI18n()
+
   return (
     <button
       type="button"
       onClick={onToggle}
-      aria-label="Alternar tema"
-      title="Alternar tema"
+      aria-label={t('theme.toggle')}
+      title={t('theme.toggle')}
       className={cn(
-        'fixed top-4 right-4 z-30 inline-flex size-10 items-center justify-center overflow-hidden rounded-lg border border-white/40 bg-white/10 text-foreground backdrop-blur-md transition-transform duration-300 hover:scale-105 active:scale-95 dark:border-white/10 dark:bg-white/5',
-        'shadow-[inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.7),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.25),0_4px_14px_rgba(0,0,0,0.12)]',
+        chromeIconButtonClass,
+        variant === 'fixed' && 'fixed top-4 right-4 z-30',
         className
       )}
     >

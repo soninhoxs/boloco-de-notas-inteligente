@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useI18n } from '@/contexts/I18nContext'
 import { cn } from '@/lib/utils'
 
 interface PaginationProps {
@@ -8,6 +9,8 @@ interface PaginationProps {
 }
 
 export function Pagination({ page, pageCount, onPageChange }: PaginationProps) {
+  const { t } = useI18n()
+
   if (pageCount <= 1) return null
 
   const pages = Array.from({ length: pageCount }, (_, i) => i + 1)
@@ -15,14 +18,14 @@ export function Pagination({ page, pageCount, onPageChange }: PaginationProps) {
   return (
     <nav
       role="navigation"
-      aria-label="Paginação"
+      aria-label={t('pagination.label')}
       className="flex items-center justify-center gap-1"
     >
       <button
         type="button"
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
-        aria-label="Página anterior"
+        aria-label={t('pagination.prev')}
         className="inline-flex size-9 items-center justify-center rounded-md border border-border text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
       >
         <ChevronLeft className="size-4" />
@@ -49,7 +52,7 @@ export function Pagination({ page, pageCount, onPageChange }: PaginationProps) {
         type="button"
         onClick={() => onPageChange(page + 1)}
         disabled={page >= pageCount}
-        aria-label="Próxima página"
+        aria-label={t('pagination.next')}
         className="inline-flex size-9 items-center justify-center rounded-md border border-border text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
       >
         <ChevronRight className="size-4" />
