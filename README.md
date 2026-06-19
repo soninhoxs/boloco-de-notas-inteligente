@@ -15,6 +15,12 @@
 
 [Repositório](https://github.com/soninhoxs/boloco-de-notas-inteligente) · [Segurança](docs/SECURITY.md) · [Deploy](docs/DEPLOY_MEGABRAIN.md)
 
+<br />
+
+<img src="docs/screenshots/login.png" alt="Tela de login do Mega Brain com OAuth e tema escuro" width="720" />
+
+*Login com Google/GitHub, consentimento LGPD e visual minimalista em dark mode.*
+
 </div>
 
 ---
@@ -38,11 +44,94 @@ Ferramentas de notas costumam ser ou muito simples (sem contexto) ou muito compl
 
 ---
 
+## Design, UX e UI
+
+O Mega Brain foi desenhado como um **produto digital completo**, não apenas como protótipo técnico. A interface prioriza foco, legibilidade e fluxos curtos — do pensamento à ação.
+
+### Princípios de design
+
+| Princípio | Na prática |
+|-----------|------------|
+| **Clareza** | Hierarquia tipográfica forte, labels explícitos e textos de apoio onde a ação não é óbvia |
+| **Foco** | Área central dedicada à captura de ideias; navegação lateral discreta |
+| **Confiança** | Banner de modo local, Central de Privacidade navegável e consentimento antes de cookies/IA |
+| **Consistência** | Design system com tokens CSS, componentes reutilizáveis (shadcn/Base UI) e ícones Lucide |
+| **Acessibilidade** | Contraste em dark mode, `aria-label` em ações icônicas, foco visível em controles |
+
+### Design system
+
+- **Tema claro/escuro** com toggle persistente e variáveis semânticas (`background`, `foreground`, `muted`, `primary`)
+- **Componentes** — cards com bordas suaves, inputs com estados de foco, switches e selects padronizados
+- **Motion** — animações leves no grid masonry e transições na sidebar (Framer Motion)
+- **Microcopy** — tom direto em pt-BR e en-US via i18n; placeholders neutros sem dados fictícios
+- **Login** — superfície pontilhada 3D (Three.js) como identidade visual sem poluir o formulário
+
+### Fluxos principais de UX
+
+1. **Captura** — composer com tags semânticas (ideia, tarefa, gratidão, lembrete) + anexo e mapa em um único fluxo
+2. **Revisão** — grid masonry nas anotações com leitura escaneável e detalhe sob demanda
+3. **Configuração** — settings em cards agrupados (conta, perfil, aparência, IA, dados)
+4. **Privacidade** — políticas com busca, índice lateral e cards de destaque (não apenas texto jurídico)
+
+---
+
+## Versão mobile e responsividade
+
+O app é **mobile-first na experiência**: funciona no celular via navegador (PWA-ready) com os mesmos fluxos do desktop.
+
+| Comportamento | Desktop | Mobile / tablet |
+|---------------|---------|-----------------|
+| **Navegação** | Sidebar fixa, colapsável (`lg+`) | Menu hambúrguer + drawer com overlay (`< lg`) |
+| **Composer** | Tags em grade horizontal | Botões touch-friendly empilhados em telas estreitas |
+| **Notas** | Grid masonry multi-coluna | Colunas reduzidas automaticamente; scroll vertical fluido |
+| **Configurações** | Cards em largura confortável (`max-w-2xl`) | Mesma hierarquia, padding adaptativo (`px-6`) |
+| **Login** | Card centralizado sobre fundo animado | Formulário em coluna única, botões OAuth em largura total |
+
+**Breakpoint principal:** sidebar e layout amplo a partir de `1024px` (`lg`); hook `useIsMobile` em `768px` para componentes que exigem comportamento específico.
+
+**Teste no celular:** rode `.\scripts\expose-megabrain-notebook.ps1` e abra o link HTTPS gerado — qualquer pessoa pode testar sem instalar app.
+
+---
+
+## Galeria de telas
+
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="Tela inicial com composer de notas" width="780" />
+  <br /><br />
+  <em><strong>Início</strong> — captura de ideias com tags, assistente de IA e modo convidado</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/notes.png" alt="Grid masonry de anotações" width="780" />
+  <br /><br />
+  <em><strong>Anotações</strong> — grid masonry animado com categorias e data</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/settings-ai.png" alt="Configurações do assistente de IA" width="780" />
+  <br /><br />
+  <em><strong>Configurações · IA</strong> — provedores, modelos, chave no cliente e consentimento RAG</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/privacy-center.png" alt="Central de Privacidade e cookies" width="780" />
+  <br /><br />
+  <em><strong>Central de Privacidade</strong> — políticas LGPD com busca, índice e cards explicativos</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/login.png" alt="Tela de login" width="780" />
+  <br /><br />
+  <em><strong>Login</strong> — OAuth, e-mail/senha e banner de cookies</em>
+</p>
+
+---
+
 ## Destaques técnicos
 
 | Área | Implementação |
 |------|----------------|
-| **Frontend** | React 19, TypeScript, Vite, Tailwind, MapLibre GL, i18n (pt-BR / en-US) |
+| **Frontend** | React 19, TypeScript, Vite, Tailwind, MapLibre GL, i18n (pt-BR / en-US), design responsivo |
 | **Backend** | Go, Gin, JWT + refresh token rotation, OAuth (Google/GitHub) |
 | **Dados** | PostgreSQL particionado, PgBouncer, Redis (cache/filas), MinIO (anexos) |
 | **IA** | Workers assíncronos, múltiplos provedores (Groq, OpenAI, DeepSeek), validação de segurança |
@@ -94,7 +183,7 @@ flowchart TB
 - Anexos (imagem/PDF) e picker de localização com mapa
 - Calendário com heatmap de atividade
 - Grid masonry animado na listagem de notas
-- Tema claro/escuro, atalhos de teclado, layout responsivo
+- Tema claro/escuro, atalhos de teclado, **layout responsivo desktop e mobile**
 
 ### Conta e segurança
 - Cadastro com verificação de e-mail
