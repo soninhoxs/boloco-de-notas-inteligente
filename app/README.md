@@ -2,6 +2,8 @@
 
 App de anotações pessoais com mapas, anexos e calendário.
 
+> Documentação geral do monorepo (backend, deploy, scripts PowerShell, o que pode ir no Git): **[README na raiz](../README.md)**
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -72,39 +74,12 @@ src/
 ## Desenvolvimento
 
 ```bash
-# Instalar dependências
+cd app
 npm install
-
-# Rodar dev server
 npm run dev
-
-# Build para produção
-npm run build
-
-# Preview do build
-npm run preview
 ```
 
-### Notebook como servidor de testes (Windows)
-
-Sem domínio — só na sua máquina:
-
-```powershell
-.\scripts\start-megabrain-notebook.ps1
-# http://localhost:3080
-```
-
-**Expor na internet para qualquer pessoa testar** (link HTTPS temporário):
-
-```powershell
-# Instale o túnel (uma vez)
-winget install Cloudflare.cloudflared
-
-# Sobe Docker + gera link público trycloudflare.com
-.\scripts\expose-megabrain-notebook.ps1
-```
-
-Parar tudo: `.\scripts\stop-megabrain-notebook.ps1`
+Deploy, notebook e link público para testes: veja [README na raiz](../README.md).
 
 ## 📝 Convenções
 
