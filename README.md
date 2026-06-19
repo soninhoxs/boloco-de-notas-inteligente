@@ -1,126 +1,238 @@
+<div align="center">
+
 # Mega Brain
 
-App de anotações pessoais com mapas, anexos, calendário e assistente de IA.  
-Repositório monorepo: **frontend** (`app/`), **backend** (`backend/`) e **scripts** de deploy/teste.
+**Plataforma full-stack de anotações pessoais com IA contextual, geolocalização e conformidade LGPD.**
 
-## O que pode estar no Git?
+*Personal knowledge app with contextual AI, geolocation, and LGPD-compliant privacy controls.*
 
-Sim — o que foi enviado ao GitHub **pode e deve** ficar versionado:
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-Private-lightgrey)]()
 
-| Pode commitar | Não commitar (ficam só na sua máquina) |
-|---------------|----------------------------------------|
-| Código fonte (`app/`, `backend/`) | `backend/.env` (senhas, OAuth, JWT) |
-| Scripts PowerShell (`.ps1`) e Bash (`.sh`) | `backend/.env.notebook.local` |
-| `*.env.example` (modelos sem segredos) | `app/.env` com chaves reais |
-| Docker, migrations, docs | `node_modules/`, `app/dist/` |
-| Dados públicos (cidades BR, traduções) | `.notebook-tunnel.*` (túnel temporário) |
+[Repositório](https://github.com/soninhoxs/boloco-de-notas-inteligente) · [Segurança](docs/SECURITY.md) · [Deploy](docs/DEPLOY_MEGABRAIN.md)
 
-Os scripts em `scripts/*.ps1` são **propositalmente** no repositório: automatizam testes no Windows (Docker + link público via Cloudflare). Não contêm senhas — só orquestram o ambiente.
+</div>
 
-Arquivos de exemplo (`.env.example`) mostram **quais variáveis** configurar, sem valores secretos.
+---
 
-## Estrutura do repositório
+## Sobre o projeto
 
+O **Mega Brain** é um produto completo para capturar, organizar e evoluir ideias e tarefas do dia a dia. O usuário registra pensamentos com tags semânticas, anexos e localização; o assistente de IA sugere próximos passos com base no **histórico real de anotações** (RAG), não em respostas genéricas.
+
+O projeto foi pensado como **aplicação de produção**: autenticação multi-provedor, sincronização na nuvem, políticas de privacidade, exportação/exclusão de dados (LGPD) e infraestrutura containerizada pronta para escalar.
+
+### Problema
+
+Ferramentas de notas costumam ser ou muito simples (sem contexto) ou muito complexas (sem privacidade clara). Usuários brasileiros precisam de uma solução que respeite a LGPD, funcione offline/localmente quando desejado e ofereça IA útil sem expor dados desnecessariamente.
+
+### Solução
+
+- **Modo convidado** — dados apenas no navegador, com consentimento explícito de cookies.
+- **Modo conta** — sync seguro via API REST, sessões httpOnly, CSRF e MFA opcional.
+- **IA sob demanda** — RAG sobre as próprias notas; chaves de API ficam no cliente; filtros de conteúdo inseguro.
+- **Deploy flexível** — dev local, stack no notebook (Docker) ou produção em VPS com HTTPS automático.
+
+---
+
+## Destaques técnicos
+
+| Área | Implementação |
+|------|----------------|
+| **Frontend** | React 19, TypeScript, Vite, Tailwind, MapLibre GL, i18n (pt-BR / en-US) |
+| **Backend** | Go, Gin, JWT + refresh token rotation, OAuth (Google/GitHub) |
+| **Dados** | PostgreSQL particionado, PgBouncer, Redis (cache/filas), MinIO (anexos) |
+| **IA** | Workers assíncronos, múltiplos provedores (Groq, OpenAI, DeepSeek), validação de segurança |
+| **Privacidade** | LGPD: consentimento versionado, export JSON, exclusão em cascata, políticas integradas |
+| **DevOps** | Docker Compose (dev/notebook/prod), Caddy + TLS, manifests Kubernetes, CI de segurança |
+| **Qualidade** | Vitest no frontend, ESLint, migrations SQL versionadas |
+
+---
+
+## Arquitetura
+
+```mermaid
+flowchart TB
+    subgraph Cliente
+        Web[React SPA]
+    end
+
+    subgraph Edge
+        Caddy[Caddy / Nginx<br/>HTTPS + static]
+    end
+
+    subgraph API
+        Go[API Go<br/>Auth · Notes · Users · Storage]
+        Worker[AI Workers<br/>Redis queue]
+    end
+
+    subgraph Dados
+        PG[(PostgreSQL<br/>particionado)]
+        Redis[(Redis)]
+        MinIO[(MinIO<br/>anexos)]
+    end
+
+    Web --> Caddy
+    Caddy --> Go
+    Go --> PG
+    Go --> Redis
+    Go --> MinIO
+    Worker --> Redis
+    Worker --> PG
+    Web -.->|chaves IA| Provedores[Provedores LLM]
 ```
-projeto/
-├── app/                 # Frontend React + Vite + TypeScript
-├── backend/             # API Go, workers, migrations, Docker
-├── scripts/             # Deploy e servidor no notebook (Windows/Linux)
-├── docs/                # Deploy em produção, segurança
-└── README.md            # Este arquivo
-```
 
-Documentação extra:
+---
 
-- [app/README.md](app/README.md) — frontend, convenções, dados locais
-- [backend/README.md](backend/README.md) — API, arquitetura, endpoints
-- [docs/DEPLOY_MEGABRAIN.md](docs/DEPLOY_MEGABRAIN.md) — publicar na internet com domínio
-- [docs/SECURITY.md](docs/SECURITY.md) — CSRF, cookies, LGPD
+## Funcionalidades
 
-## Requisitos
+### Produto
+- Composer de notas com tags (ideia, tarefa, gratidão, lembrete)
+- Anexos (imagem/PDF) e picker de localização com mapa
+- Calendário com heatmap de atividade
+- Grid masonry animado na listagem de notas
+- Tema claro/escuro, atalhos de teclado, layout responsivo
 
-- **Desenvolvimento local:** Node.js 20+, npm
-- **Backend / notebook / produção:** Docker Desktop (Windows) ou Docker (Linux)
-- **Expor testes sem domínio:** [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) (`winget install Cloudflare.cloudflared`)
+### Conta e segurança
+- Cadastro com verificação de e-mail
+- Login social (Google, GitHub) e credenciais locais
+- MFA (TOTP), troca de e-mail, revogação de sessões
+- CSRF em mutações, cookies httpOnly, rate limiting
 
-## Desenvolvimento local (só frontend)
+### IA
+- Sugestões contextuais para ideias e tarefas
+- RAG: recuperação das notas mais relevantes antes do prompt
+- Moderação de conteúdo e consentimento específico para envio a terceiros
+
+---
+
+## Stack
+
+**Frontend** — React 19 · TypeScript · Vite · React Router 7 · Tailwind CSS · Framer Motion · MapLibre GL · cmdk
+
+**Backend** — Go · Gin · PostgreSQL 16 · PgBouncer · Redis 7 · MinIO · SMTP
+
+**Infra** — Docker · Caddy · GitHub Actions · Kubernetes (manifests)
+
+---
+
+## Como executar
+
+### Pré-requisitos
+
+- Node.js 20+
+- Docker Desktop (para stack completa)
+- [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) (opcional, para expor testes)
+
+### Frontend apenas (desenvolvimento)
 
 ```bash
-cd app
+git clone https://github.com/soninhoxs/boloco-de-notas-inteligente.git
+cd boloco-de-notas-inteligente/app
 npm install
 npm run dev
 ```
 
-Abre em http://localhost:5173 (modo convidado usa `localStorage`; API em http://localhost:8080 se o backend estiver rodando).
+→ http://localhost:5173
 
-## Servidor completo no notebook (Windows)
-
-Sobe frontend buildado + API + Postgres + Redis + MinIO em **uma porta**:
+### Stack completa no notebook (Windows)
 
 ```powershell
-# Na raiz do repositório
 .\scripts\start-megabrain-notebook.ps1
 ```
 
-Acesse: http://localhost:3080
+→ http://localhost:3080 (frontend + API + banco + storage)
 
-### Compartilhar link público para testes (sem domínio)
-
-Gera um URL HTTPS temporário (`*.trycloudflare.com`) para qualquer pessoa testar no celular:
+### Link público temporário (testes com outras pessoas)
 
 ```powershell
-winget install Cloudflare.cloudflared   # uma vez
+winget install Cloudflare.cloudflared
 .\scripts\expose-megabrain-notebook.ps1
 ```
 
-O script copia o link para a área de transferência. A URL **muda** cada vez que você roda de novo.
+### Produção (VPS + domínio)
 
-Parar tudo:
+Ver [docs/DEPLOY_MEGABRAIN.md](docs/DEPLOY_MEGABRAIN.md).
 
-```powershell
-.\scripts\stop-megabrain-notebook.ps1
+### Variáveis de ambiente
+
+| Arquivo | Descrição |
+|---------|-----------|
+| [app/.env.example](app/.env.example) | API URL, estilo de mapa |
+| [backend/.env.example](backend/.env.example) | OAuth, JWT, SMTP, IA |
+| [backend/docker/.env.production.example](backend/docker/.env.production.example) | Deploy produção |
+
+> Nunca commite arquivos `.env` com segredos reais. Detalhes em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
+---
+
+## Estrutura do repositório
+
+```
+├── app/                  # SPA React (componentes, hooks, serviços, i18n)
+├── backend/
+│   ├── cmd/              # API e workers
+│   ├── internal/         # auth, notes, ai, user, storage
+│   ├── migrations/       # SQL versionado
+│   └── docker/           # Compose dev, notebook e produção
+├── scripts/              # Automação Windows/Linux
+└── docs/                 # Deploy, segurança, desenvolvimento
 ```
 
-## Produção (VPS + domínio)
+---
 
-Para uso real na internet (HTTPS fixo, OAuth estável):
+## Decisões de engenharia
 
-1. VPS Linux com Docker
-2. Domínio apontando para o servidor
-3. Configurar `backend/docker/.env` a partir de `.env.production.example`
-4. `./scripts/deploy-megabrain.sh`
+**Monorepo** — frontend e backend evoluem juntos; contratos da API e tipos ficam alinhados.
 
-Detalhes: [docs/DEPLOY_MEGABRAIN.md](docs/DEPLOY_MEGABRAIN.md)
+**Particionamento de notas** — tabela de notas particionada por tempo para suportar crescimento sem degradação de consultas.
 
-## Configuração de ambiente
+**IA no cliente para chaves** — API keys de LLM não passam pelo servidor; reduz superfície de vazamento e responsabilidade de armazenamento.
 
-| Arquivo | Uso |
-|---------|-----|
-| `app/.env.example` | Variáveis do Vite (API, mapas) |
-| `backend/.env.example` | OAuth, JWT, SMTP, chaves de IA no servidor |
-| `backend/docker/.env.production.example` | Deploy Docker em produção |
+**RAG local no browser** — embeddings leves e busca nas notas do usuário antes de chamar o provedor; respostas mais relevantes com menos tokens.
 
-Copie o `.example` para `.env` e preencha **apenas na sua máquina**. O `.env` real nunca vai para o Git.
+**LGPD desde o desenho** — consentimento versionado, modo convidado isolado, exportação e exclusão implementados na API, não só na política de texto.
 
-## Funcionalidades principais
+**Dois modos de deploy** — Compose para notebook (demos e QA) e stack de produção com Caddy (TLS automático) para o mesmo código.
 
-- Anotações com tags (ideia, tarefa, gratidão, lembrete)
-- Anexos (imagem, PDF) e localização no mapa
-- Calendário e grid masonry nas notas
-- Modo convidado (dados no navegador) ou conta com sync na nuvem
-- Login e-mail, Google, GitHub; MFA; LGPD (política, cookies, exportação)
-- Assistente de IA com RAG nas suas notas (chaves de API só no cliente)
+---
 
-## Scripts disponíveis
+## Testes e qualidade
 
-| Script | Plataforma | Descrição |
-|--------|------------|-----------|
-| `scripts/start-megabrain-notebook.ps1` | Windows | Sobe stack local na porta 3080 |
-| `scripts/expose-megabrain-notebook.ps1` | Windows | Notebook + túnel público HTTPS |
-| `scripts/stop-megabrain-notebook.ps1` | Windows | Para containers e túnel |
-| `scripts/run-migrations.ps1` | Windows | Migrations do Postgres (notebook) |
-| `scripts/deploy-megabrain.sh` | Linux (VPS) | Deploy de produção |
+```bash
+cd app
+npm run lint
+npm run test
+npm run build
+```
 
-## Licença e repositório
+---
 
-Código no GitHub: [boloco-de-notas-inteligente](https://github.com/soninhoxs/boloco-de-notas-inteligente)
+## Documentação
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [app/README.md](app/README.md) | Convenções do frontend |
+| [backend/README.md](backend/README.md) | API, endpoints, arquitetura backend |
+| [docs/SECURITY.md](docs/SECURITY.md) | CSRF, MFA, LGPD, incidentes |
+| [docs/DEPLOY_MEGABRAIN.md](docs/DEPLOY_MEGABRAIN.md) | Publicação com domínio |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Git, scripts, ambiente local |
+
+---
+
+## Contato
+
+Projeto desenvolvido para demonstrar competências em **desenvolvimento full-stack**, **segurança de aplicações** e **produtos com IA responsável**.
+
+GitHub: [@soninhoxs](https://github.com/soninhoxs)
+
+---
+
+<div align="center">
+
+**Mega Brain** — transformar pensamentos dispersos em ação organizada.
+
+</div>

@@ -1,10 +1,8 @@
-# Mega Brain
+# Mega Brain — Frontend
 
-App de anotações pessoais com mapas, anexos e calendário.
+SPA React do Mega Brain. Documentação geral do projeto: **[README na raiz](../README.md)**.
 
-> Documentação geral do monorepo (backend, deploy, scripts PowerShell, o que pode ir no Git): **[README na raiz](../README.md)**
-
-## 📁 Estrutura do Projeto
+## Estrutura
 
 ```
 src/
@@ -74,14 +72,15 @@ src/
 ## Desenvolvimento
 
 ```bash
-cd app
 npm install
-npm run dev
+npm run dev    # http://localhost:5173
+npm run test
+npm run build
 ```
 
-Deploy, notebook e link público para testes: veja [README na raiz](../README.md).
+Stack completa, deploy e variáveis de ambiente: [README na raiz](../README.md) e [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md).
 
-## 📝 Convenções
+## Convenções
 
 - **Componentes** - PascalCase (ex: `ThoughtComposer.tsx`)
 - **Hooks** - camelCase com prefixo `use` (ex: `useNotes.ts`)
